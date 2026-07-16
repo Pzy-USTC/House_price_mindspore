@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+
+# Checkpoints
+checkpoints/*.ckpt
+checkpoints/*.ckpt.*
+
+# Artifacts (保留 .gitkeep)
+artifacts/*
+!artifacts/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
