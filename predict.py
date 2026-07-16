@@ -16,6 +16,38 @@ import numpy as np
 
 
 # ---------------------------------------------------------------------------
+# 模块级缓存（避免每次调用都重新读取磁盘文件）
+# ---------------------------------------------------------------------------
+
+_weights_cache = {}
+_scaler_cache = {}
+
+
+def _load_weights(artifacts_dir):
+    """加载模型权重（带缓存）"""
+    if artifacts_dir not in _weights_cache:
+        path = os.path.join(artifacts_dir, "weights.json")
+        with open(path, "r", encoding="utf-8") as f:
+            _weights_cache[artifacts_dir] = json.load(f)
+    return _weights_cache[artifacts_dir]
+
+
+def _load_scaler(artifacts_dir):
+    """加载 scaler 参数（带缓存）"""
+    if artifacts_dir not in _scaler_cache:
+        path = os.path.join(artifacts_dir, "scaler_params.json")
+        with open(path, "r", encoding="utf-8") as f:
+            _scaler_cache[artifacts_dir] = json.load(f)
+    return _scaler_cache[artifacts_dir]
+
+
+def clear_cache():
+    """清除缓存（权重文件更新后调用）"""
+    _weights_cache.clear()
+    _scaler_cache.clear()
+
+
+# ---------------------------------------------------------------------------
 # numpy 基础运算
 # ---------------------------------------------------------------------------
 
@@ -113,15 +145,9 @@ def predict_price(raw_features, artifacts_dir="artifacts"):
         单条输入返回 float（预测房价，十万美元）
         批量输入返回 numpy 数组 (n,)
     """
-    # 加载权重
-    weights_path = os.path.join(artifacts_dir, "weights.json")
-    with open(weights_path, "r", encoding="utf-8") as f:
-        weights = json.load(f)
-
-    # 加载 scaler 参数
-    scaler_path = os.path.join(artifacts_dir, "scaler_params.json")
-    with open(scaler_path, "r", encoding="utf-8") as f:
-        scaler = json.load(f)
+    # 加载权重和 scaler 参数（带缓存）
+    weights = _load_weights(artifacts_dir)
+    scaler = _load_scaler(artifacts_dir)
 
     # 转为 numpy 数组
     x = np.array(raw_features, dtype=np.float32)

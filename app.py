@@ -47,6 +47,14 @@ ARTIFACTS_DIR = "artifacts"
 WEIGHTS_PATH = os.path.join(ARTIFACTS_DIR, "weights.json")
 METRICS_PATH = os.path.join(ARTIFACTS_DIR, "metrics.json")
 
+
+@st.cache_data
+def _load_housing_data():
+    """加载加州房价数据集（带 Streamlit 缓存，避免重复加载）"""
+    housing = fetch_california_housing()
+    return housing
+
+
 # 检查模型权重是否存在
 has_weights = os.path.exists(WEIGHTS_PATH)
 
@@ -142,7 +150,7 @@ st.subheader("特征重要性（扰动法）")
 
 if has_weights:
     # 加载数据集用于扰动法计算
-    housing = fetch_california_housing()
+    housing = _load_housing_data()
     # 随机采样 200 条数据作为评估样本
     rng = np.random.RandomState(42)
     sample_idx = rng.choice(len(housing.data), size=200, replace=False)
@@ -194,8 +202,8 @@ else:
 
 st.subheader("数据集概览")
 
-# 加载数据集
-housing = fetch_california_housing()
+# 加载数据集（使用缓存）
+housing = _load_housing_data()
 df = pd.DataFrame(housing.data, columns=FEATURE_NAMES)
 df["房价"] = housing.target  # 目标变量
 
