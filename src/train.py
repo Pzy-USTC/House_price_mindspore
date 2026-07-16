@@ -39,11 +39,7 @@ def parse_args():
 
 
 def setup_context():
-    """自动检测设备：Ascend 优先，回退 CPU
-
-    返回:
-        (device_target, dataset_sink_mode)
-    """
+    """自动检测设备：Ascend 优先，回退 CPU"""
     from mindspore import context
 
     # 尝试使用 Ascend 设备
@@ -53,12 +49,10 @@ def setup_context():
         import mindspore as ms
         _ = ms.Tensor(np.array([1.0]), ms.float32)
         print("检测到 Ascend 设备，使用 Ascend 训练")
-        return "Ascend", True
     except Exception:
         # 回退 CPU
         context.set_context(mode=context.GRAPH_MODE, device_target="CPU")
         print("未检测到 Ascend 设备，使用 CPU 训练")
-        return "CPU", False
 
 
 def create_dataset(X, y, batch_size=32, shuffle=True):
@@ -127,7 +121,7 @@ def train(args):
     np.random.seed(args.seed)
 
     # 设置设备
-    device, sink_mode = setup_context()
+    setup_context()
 
     # 加载数据
     print("正在加载数据...")
@@ -165,8 +159,10 @@ def train(args):
 
     # 训练回调
     os.makedirs(args.save_dir, exist_ok=True)
+    dataset_size = train_dataset.get_dataset_size()
+    print(f"数据集大小: {dataset_size} 批次/epoch")
     config_ckpt = CheckpointConfig(
-        save_checkpoint_steps=train_dataset.get_dataset_size(),
+        save_checkpoint_steps=dataset_size,
         keep_checkpoint_max=5,
     )
     ckpt_cb = ModelCheckpoint(
@@ -174,16 +170,17 @@ def train(args):
         directory=args.save_dir,
         config=config_ckpt,
     )
-    callbacks = [LossMonitor(), TimeMonitor(data_size=train_dataset.get_dataset_size()), ckpt_cb]
+    callbacks = [LossMonitor(), TimeMonitor(), ckpt_cb]
 
     # 开始训练
     print(f"开始训练: epochs={args.epochs}, lr={args.lr}, "
           f"batch_size={args.batch_size}")
+    print("=" * 50)
+    # MindSpore 2.4.x 移除了 dataset_sink_mode 参数
     model.train(
         args.epochs,
         train_dataset,
         callbacks=callbacks,
-        dataset_sink_mode=sink_mode,
     )
     print("训练完成！")
 
