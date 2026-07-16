@@ -50,7 +50,7 @@ if _HAS_MINDSPORE:
             # Dense(8→128) → ReLU → Dropout → Dense(128→128) → ReLU
             self.enc_fc1 = nn.Dense(input_dim, hidden_dim)
             self.enc_relu1 = nn.ReLU()
-            self.enc_dropout1 = nn.Dropout(keep_prob=1.0 - dropout)
+            self.enc_dropout1 = nn.Dropout(p=dropout)
             self.enc_fc2 = nn.Dense(hidden_dim, hidden_dim)
             self.enc_relu2 = nn.ReLU()
 
@@ -64,7 +64,7 @@ if _HAS_MINDSPORE:
             # 拼接 [原始编码, 注意力输出] → Dense(256→128) → ReLU → Dropout → Dense(128→1)
             self.fus_fc1 = nn.Dense(hidden_dim * 2, hidden_dim)
             self.fus_relu = nn.ReLU()
-            self.fus_dropout = nn.Dropout(keep_prob=1.0 - dropout)
+            self.fus_dropout = nn.Dropout(p=dropout)
             self.fus_fc2 = nn.Dense(hidden_dim, 1)
 
         def construct(self, x):
